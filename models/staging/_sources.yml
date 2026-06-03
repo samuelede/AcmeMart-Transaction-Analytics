@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: google_sales_data
+    schema: GOOGLE_DRIVE_SALES
+    tables:
+      - name: csv_sales
+
+  - name: facebook_ads_data
+    schema: FACEBOOK_ADS
+    description: "Facebook Ads data"
+    tables:
+      - name: ads
