@@ -93,7 +93,7 @@ AcmeMart sells a wide range of consumer goods including groceries, household ite
 
 ## Architecture
 
-![DataMart Architecture](img\dw_arch_diagram.svg)
+![DataMart Architecture](img/dw_arch_diagram.svg)
 
 ### Data Flow
 
