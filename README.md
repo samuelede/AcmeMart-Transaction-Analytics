@@ -29,7 +29,11 @@ A centralized, end-to-end data warehouse pipeline to ingest, transform, and anal
     - [Step 2 - Configure environment variables](#step-2---configure-environment-variables)
     - [Step 3 - Set up Snowflake](#step-3---set-up-snowflake)
     - [Step 4 - Configure Airbyte](#step-4---configure-airbyte)
-    - [Step 5 - Install dbt dependencies](#step-5---install-dbt-dependencies)
+    - [Step 5 - Install dbt and dependencies](#step-5---install-dbt-and-dependencies)
+      - [Install dependencies](#install-dependencies)
+      - [Set up dbt profile](#set-up-dbt-profile)
+      - [Verify the connection](#verify-the-connection)
+    - [Step 6 - Install dbt dependencies](#step-6---install-dbt-dependencies)
   - [Running the Pipeline](#running-the-pipeline)
     - [Step 1 - Trigger Airbyte sync](#step-1---trigger-airbyte-sync)
     - [Step 2 - Run dbt models](#step-2---run-dbt-models)
@@ -168,8 +172,10 @@ Ensure the following are in place before proceeding:
 - [Airbyte Cloud](https://airbyte.com/) account or self-hosted Airbyte instance
 - [Google Drive](https://drive.google.com/) folder containing the source CSV files
 - [dbt Core](https://docs.getdbt.com/docs/core/installation) installed locally (`pip install dbt-snowflake`)
-- [Python 3.9+](https://www.python.org/)
+- [Python 3.9+](https://www.python.org/) with pip
 - [Git](https://git-scm.com/)
+- [dbt-snowflake](https://docs.getdbt.com/docs/core/connect-data-platform/snowflake-setup) 
+  (installed via `requirements.txt` in Step 5)
 
 Verify your dbt installation:
 
@@ -249,15 +255,60 @@ GRANT ALL ON ALL SCHEMAS IN DATABASE ACMEMART_DW TO ROLE TRANSFORMER_ROLE;
 
 4. Trigger a manual sync and verify rows appear in `ACMEMART_DW.BRONZE`
 
-### Step 5 - Install dbt dependencies
+### Step 5 - Install dbt and dependencies
 
-Configure your dbt profile by copying the example:
+#### Install dependencies
 
 ```bash
-cp profiles.yml.example ~/.dbt/profiles.yml
+pip install -r requirements.txt
 ```
 
-Edit `~/.dbt/profiles.yml` with your Snowflake connection details, then install packages:
+Verify the installation:
+
+```bash
+dbt --version
+```
+
+---
+
+#### Set up dbt profile
+
+Create the `.dbt` folder and copy the template in one command:
+
+```bash
+mkdir -p ~/.dbt && cp profiles.yml.example ~/.dbt/profiles.yml
+```
+
+Open the file and fill in your Snowflake credentials:
+
+**Windows (Git Bash):**
+```bash
+notepad "C:/Users/<YourUsername>/.dbt/profiles.yml"
+```
+
+**Mac / Linux:**
+```bash
+open ~/.dbt/profiles.yml
+```
+
+> **`profiles.yml` must never be committed to version control.** Only `profiles.yml.example` lives in the repository. The real file is excluded via `.gitignore`.
+
+---
+
+#### Verify the connection
+
+```bash
+dbt debug
+```
+
+A successful connection ends with:
+```
+Connection test: [OK connection ok]
+All checks passed!
+```
+
+
+### Step 6 - Install dbt dependencies
 
 ```bash
 dbt deps
