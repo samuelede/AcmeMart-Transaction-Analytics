@@ -29,6 +29,12 @@ A centralized, end-to-end data warehouse pipeline to ingest, transform, and anal
     - [Step 2 - Configure environment variables](#step-2---configure-environment-variables)
     - [Step 3 - Set up Snowflake](#step-3---set-up-snowflake)
     - [Step 4 - Configure Airbyte](#step-4---configure-airbyte)
+      - [4a: Create Google Drive source](#4a-create-google-drive-source)
+      - [4b: Create Snowflake destination](#4b-create-snowflake-destination)
+      - [4c: Create the connection](#4c-create-the-connection)
+      - [4d: Configure the stream](#4d-configure-the-stream)
+      - [4e: Set the schedule and finish](#4e-set-the-schedule-and-finish)
+      - [4f: Verify first sync](#4f-verify-first-sync)
     - [Step 5 - Install dbt and dependencies](#step-5---install-dbt-and-dependencies)
       - [Install dependencies](#install-dependencies)
       - [Set up dbt profile](#set-up-dbt-profile)
@@ -240,20 +246,93 @@ GRANT ALL ON ALL SCHEMAS IN DATABASE ACMEMART_DW TO ROLE TRANSFORMER_ROLE;
 
 ### Step 4 - Configure Airbyte
 
-1. In Airbyte, create a **Google Drive** source connector:
-   - Authenticate using a Google service account JSON key
-   - Point to the folder containing your CSV files
+#### 4a: Create Google Drive source
 
-2. Create a **Snowflake** destination connector:
-   - Use the credentials from Step 3
-   - Set the default schema to `BRONZE`
+```
+1. In Airbyte → Sources → New Source
+2. Connector  : Google Drive
+3. Name       : AcmeMart - Google Drive
+4. Auth       : paste service account JSON key
+5. Folder URL : paste the shared Drive folder URL
+6. File type  : CSV
+7. Click "Test and Save" → confirm green checkmark
+```
 
-3. Create a connection between the source and destination:
-   - Select streams: `transactions`, `customers`, `products`, `stores`
-   - Set sync modes: `Incremental | Append` for transactions; `Full Refresh | Overwrite` for reference tables
-   - Schedule: every 24 hours
+#### 4b: Create Snowflake destination
 
-4. Trigger a manual sync and verify rows appear in `ACMEMART_DW.BRONZE`
+```
+1. In Airbyte → Destinations → New Destination
+2. Connector      : Snowflake
+3. Name           : AcmeMart - Snowflake
+4. Credentials    : use values from your .env file
+5. Database       : ACMEMART_DW
+6. Default schema : BRONZE
+7. Click "Test and Save" → confirm green checkmark
+```
+
+#### 4c: Create the connection
+
+```
+1. In Airbyte → Connections → New Connection
+2. Source      : AcmeMart - Google Drive
+3. Destination : AcmeMart - Snowflake
+```
+
+#### 4d: Configure the stream
+
+Airbyte automatically detects all store CSV files from the Drive folder
+and combines them into a single stream called **`csv_sales`**.
+
+In the **Select streams** step, configure the stream as follows:
+
+| Setting | Value |
+|---|---|
+| Stream name | `csv_sales` |
+| Sync mode | `Incremental \| Append + Deduped` |
+| Primary key | `transaction_id`, `store_id`, `customer_id` |
+| Cursor field | `_ab_source_file_last_modified` |
+
+**How to set the primary key:**
+```
+1. Click the Fields column (13/13) on the csv_sales row
+2. In the field panel, tick the primary key checkbox for:
+      ✅ transaction_id
+      ✅ store_id
+      ✅ customer_id
+3. Confirm cursor is set to: _ab_source_file_last_modified
+4. Click Next → Configure connection
+```
+
+> The cursor field `_ab_source_file_last_modified` tells Airbyte which
+> files in Google Drive are new since the last sync. Only new or updated
+> store files are pulled on each run — not the entire folder every time.
+
+#### 4e: Set the schedule and finish
+
+```
+1. Sync schedule : Every 24 hours
+2. Destination namespace : ACMEMART_DW.BRONZE
+3. Normalisation : Off  (dbt handles all transformation)
+4. Click "Set up connection"
+```
+
+#### 4f: Verify first sync
+
+Trigger a manual sync and confirm it succeeds:
+
+```
+1. Click "Sync Now" on the connection page
+2. Wait for status → Succeeded
+3. In Snowflake, verify data landed:
+```
+
+```sql
+SELECT COUNT(*) FROM ACMEMART_DW.BRONZE.CSV_SALES;
+```
+
+> Screenshot the Airbyte dashboard showing **Succeeded** status
+> and the Snowflake query result showing a non-zero row count.
+> These are your **Week 1 deliverables**.
 
 ### Step 5 - Install dbt and dependencies
 

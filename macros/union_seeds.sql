@@ -1,21 +1,21 @@
 {% macro union_seeds(pattern) %}
 
 {#
-    Dynamically unions all seed tables whose name contains the given pattern.
+    Development macro: dynamically unions all dbt seed tables whose name
+    contains the given pattern.
 
-    Usage in a model:
-        {{ union_seeds('transactions') }}
-        {{ union_seeds('customers') }}
-        {{ union_seeds('products') }}
-        {{ union_seeds('stores') }}
+    Usage:
+        {{ union_seeds('store') }}
 
-    This handles seed files named like:
-        transactions.csv
-        01_transactions.csv
-        02_transactions.csv
-        acmemart_transactions.csv
-        acmemart_transactions_2024.csv
-        ...as long as the word appears anywhere in the filename.
+    Matches seed files named like:
+        store_S001.csv
+        store_S002.csv
+        store_5_25-01.csv
+        store_S003.csv  etc.
+
+    NOTE: In production, this macro is bypassed and data is read directly
+    from BRONZE.CSV_SALES loaded by Airbyte. See stg_transactions.sql
+    for the commented-out production source block.
 #}
 
 {%- set seed_nodes = [] -%}

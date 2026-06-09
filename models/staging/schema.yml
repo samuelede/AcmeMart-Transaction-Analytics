@@ -1,28 +1,72 @@
 version: 2
 
+sources:
+  - name: bronze
+    database: ACMEMART_DW
+    schema: BRONZE
+    description: >
+      Raw data ingested by Airbyte from Google Drive CSV files.
+      All store transaction files are combined into a single stream
+      called csv_sales by Airbyte before landing in Snowflake.
+    tables:
+      - name: csv_sales
+        description: >
+          Single table containing all transaction rows from all store CSV files
+          (store_S001, store_S002, store_S003, store_S004, store_5_25-01 etc.).
+          Airbyte merges all Drive folder CSVs into this one table.
+          Includes two Airbyte metadata columns:
+          _ab_source_file_last_modified (cursor) and _ab_source_file_url (origin file).
+        columns:
+          - name: transaction_id
+            description: "Unique transaction identifier. Used as primary key in Airbyte deduplication."
+          - name: store_id
+            description: "Store identifier. Used as part of composite primary key in Airbyte."
+          - name: customer_id
+            description: "Customer identifier. Used as part of composite primary key in Airbyte."
+          - name: product_id
+            description: "Product identifier."
+          - name: product_name
+            description: "Product display name."
+          - name: category
+            description: "Product category."
+          - name: quantity
+            description: "Units purchased."
+          - name: unit_price
+            description: "Price per unit."
+          - name: total_amount
+            description: "Total transaction value."
+          - name: payment_method
+            description: "Payment method: Cash, Card, or Transfer."
+          - name: transaction_timestamp
+            description: "Full datetime of the transaction."
+          - name: _ab_source_file_last_modified
+            description: "Airbyte cursor — timestamp of when the source file was last modified in Google Drive."
+          - name: _ab_source_file_url
+            description: "Airbyte metadata — the Google Drive URL of the source file this row came from."
+
 models:
   - name: stg_transactions
     description: >
-      Cleaned and typed transaction records unioned from all store CSV seed files
-      (store_S001, store_S002, store_5_25-01, etc.). One row per transaction line item.
-      Each seed file represents one physical store's transactions. Product and customer
-      attributes are denormalised directly into each row from the source.
+      Cleaned and typed transaction records from all store CSV files.
+      In production, sourced from BRONZE.CSV_SALES loaded by Airbyte.
+      In development, sourced from seed files via the union_seeds('store') macro.
+      One row per transaction line item.
     columns:
       - name: transaction_id
-        description: "Unique identifier for each transaction. Format: S001-YYYYMMDD-NNNN."
+        description: "Unique transaction identifier."
         tests:
           - unique
           - not_null
       - name: store_id
-        description: "Store that processed the transaction (e.g. S001, S002)."
+        description: "Store that processed the transaction."
         tests:
           - not_null
       - name: product_id
-        description: "Product identifier (e.g. P001, P005)."
+        description: "Product identifier."
         tests:
           - not_null
       - name: customer_id
-        description: "Customer identifier (e.g. C2679)."
+        description: "Customer identifier."
         tests:
           - not_null
       - name: transaction_timestamp
@@ -36,31 +80,31 @@ models:
       - name: transaction_year
         description: "Year extracted from transaction_timestamp."
       - name: transaction_month
-        description: "Month number extracted from transaction_timestamp."
+        description: "Month extracted from transaction_timestamp."
       - name: transaction_hour
-        description: "Hour extracted from transaction_timestamp — useful for peak hour analysis."
+        description: "Hour extracted from transaction_timestamp."
       - name: product_name
-        description: "Name of the product sold (e.g. Eggs 12 pack, Rice 5kg)."
+        description: "Product display name."
         tests:
           - not_null
       - name: category
-        description: "Product category (e.g. Dairy, Groceries, Meat, Household, Beverages)."
+        description: "Product category."
         tests:
           - not_null
       - name: quantity
-        description: "Number of units purchased in this transaction."
+        description: "Units purchased."
         tests:
           - not_null
       - name: unit_price
-        description: "Price per single unit at time of transaction."
+        description: "Price per unit."
         tests:
           - not_null
       - name: total_amount
-        description: "Total transaction value — quantity multiplied by unit_price."
+        description: "Total transaction value."
         tests:
           - not_null
       - name: payment_method
-        description: "Payment method used: Cash, Card, or Transfer."
+        description: "Payment method: Cash, Card, or Transfer."
         tests:
           - not_null
           - accepted_values:
