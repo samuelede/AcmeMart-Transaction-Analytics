@@ -34,7 +34,7 @@ A centralized, end-to-end data warehouse pipeline to ingest, transform, and anal
       - [4c: Create the connection](#4c-create-the-connection)
       - [4d: Configure the stream](#4d-configure-the-stream)
       - [4e: Set the schedule and finish](#4e-set-the-schedule-and-finish)
-      - [4f: Verify first sync](#4f-verify-first-sync)
+      - [4f — Verify first sync](#4f--verify-first-sync)
     - [Step 5 - Install dbt and dependencies](#step-5---install-dbt-and-dependencies)
       - [Install dependencies](#install-dependencies)
       - [Set up dbt profile](#set-up-dbt-profile)
@@ -316,7 +316,7 @@ In the **Select streams** step, configure the stream as follows:
 4. Click "Set up connection"
 ```
 
-#### 4f: Verify first sync
+#### 4f — Verify first sync
 
 Trigger a manual sync and confirm it succeeds:
 
@@ -402,13 +402,16 @@ dbt deps
 Run a manual sync from the Airbyte UI, or wait for the scheduled daily run. Verify data landed in Snowflake:
 
 ```sql
-SELECT 'transactions' AS table_name, COUNT(*) AS row_count FROM BRONZE.TRANSACTIONS
-UNION ALL
-SELECT 'customers', COUNT(*) FROM BRONZE.CUSTOMERS
-UNION ALL
-SELECT 'products',  COUNT(*) FROM BRONZE.PRODUCTS
-UNION ALL
-SELECT 'stores',    COUNT(*) FROM BRONZE.STORES;
+-- Verify Airbyte sync landed data in Snowflake
+SELECT 
+    COUNT(*)                        AS total_rows,
+    COUNT(DISTINCT transaction_id)  AS unique_transactions,
+    COUNT(DISTINCT store_id)        AS stores,
+    COUNT(DISTINCT product_id)      AS products,
+    COUNT(DISTINCT customer_id)     AS customers,
+    MIN(transaction_timestamp)      AS earliest_transaction,
+    MAX(transaction_timestamp)      AS latest_transaction
+FROM ACMEMART_DW.BRONZE.CSV_SALES;
 ```
 
 ### Step 2 - Run dbt models
