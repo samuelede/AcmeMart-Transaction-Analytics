@@ -108,4 +108,5 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['Cash', 'Card', 'Transfer', 'Mobile', 'Voucher']
+              arguments:
+                values: ['Cash', 'Card', 'Transfer']

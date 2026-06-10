@@ -23,21 +23,24 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('dim_stores')
-              field: store_id
+              arguments:
+                to: ref('dim_stores')
+                field: store_id
       - name: product_id
         description: "Foreign key to dim_products."
         tests:
           - not_null
           - relationships:
-              to: ref('dim_products')
+              arguments:
+                to: ref('dim_products')
               field: product_id
       - name: customer_id
         description: "Foreign key to dim_customers."
         tests:
           - not_null
           - relationships:
-              to: ref('dim_customers')
+              arguments:
+                to: ref('dim_customers')
               field: customer_id
       - name: transaction_timestamp
         description: "Full datetime the transaction occurred."
@@ -124,19 +127,22 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['Active', 'At Risk', 'Lapsing', 'Churned']
+              arguments:
+                values: ['Active', 'At Risk', 'Lapsing', 'Churned']
       - name: frequency_band
         description: "High ≥20 | Medium 5–19 | Low <5 transactions."
         tests:
           - not_null
           - accepted_values:
-              values: ['High', 'Medium', 'Low']
+              arguments:
+                values: ['High', 'Medium', 'Low']
       - name: monetary_band
         description: "High Value ≥500 | Mid Value 100–499 | Low Value <100."
         tests:
           - not_null
           - accepted_values:
-              values: ['High Value', 'Mid Value', 'Low Value']
+              arguments:
+                values: ['High Value', 'Mid Value', 'Low Value']
 
   - name: dim_products
     description: >

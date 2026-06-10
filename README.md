@@ -44,7 +44,7 @@ A centralized, end-to-end data warehouse pipeline to ingest, transform, and anal
     - [Step 1 - Trigger Airbyte sync](#step-1---trigger-airbyte-sync)
     - [Step 2 - Run dbt models](#step-2---run-dbt-models)
     - [Step 3 - Run dbt tests](#step-3---run-dbt-tests)
-    - [Step 4 - Generate dbt docs](#step-4---generate-dbt-docs)
+    - [Step 4 — Generate and view documentation](#step-4--generate-and-view-documentation)
   - [Data Models](#data-models)
     - [Staging layer](#staging-layer)
     - [Gold layer](#gold-layer)
@@ -436,14 +436,17 @@ dbt test
 dbt test --select fct_sales
 ```
 
-### Step 4 - Generate dbt docs
+### Step 4 — Generate and view documentation
 
 ```bash
 dbt docs generate
-dbt docs serve
+dbt docs serve --port 8081
 ```
 
-Open `http://localhost:8080` in your browser to explore the lineage graph and data dictionary.
+Open `http://localhost:8081` in your browser to view the lineage graph and data dictionary.
+
+> **If port 8081 is blocked on Windows:** try `--port 8888` or `--port 8000`.
+> If all ports fail, run Git Bash as Administrator and retry.
 
 ---
 

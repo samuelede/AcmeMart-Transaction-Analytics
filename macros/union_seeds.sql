@@ -1,40 +1,35 @@
 {% macro union_seeds(pattern) %}
 
 {#
-    Development macro: dynamically unions all dbt seed tables whose name
-    contains the given pattern.
+    Unions all seed tables listed under the 'seed_files' variable
+    in dbt_project.yml whose name contains the given pattern.
+
+    Add new seed filenames to the 'seed_files' var in dbt_project.yml
+    and they will be automatically included on the next dbt run.
 
     Usage:
         {{ union_seeds('store') }}
-
-    Matches seed files named like:
-        store_S001.csv
-        store_S002.csv
-        store_5_25-01.csv
-        store_S003.csv  etc.
-
-    NOTE: In production, this macro is bypassed and data is read directly
-    from BRONZE.CSV_SALES loaded by Airbyte. See stg_transactions.sql
-    for the commented-out production source block.
 #}
 
-{%- set seed_nodes = [] -%}
+{%- set all_seeds = var('seed_files', []) -%}
+{%- set matched = [] -%}
 
-{%- for node in graph.sources.values() | list + graph.nodes.values() | list -%}
-    {%- if node.resource_type == 'seed'
-        and pattern | lower in node.name | lower -%}
-        {%- do seed_nodes.append(node.name) -%}
+{%- for seed_name in all_seeds -%}
+    {%- if pattern | lower in seed_name | lower -%}
+        {%- do matched.append(seed_name) -%}
     {%- endif -%}
 {%- endfor -%}
 
-{%- if seed_nodes | length == 0 -%}
+{%- if matched | length == 0 -%}
     {{ exceptions.raise_compiler_error(
-        "union_seeds: no seed tables found matching pattern '" ~ pattern ~ "'. "
-        ~ "Make sure you have run `dbt seed` first."
+        "union_seeds: no seeds found matching pattern '"
+        ~ pattern ~ "'. "
+        ~ "Add the seed filename to the 'seed_files' var in dbt_project.yml "
+        ~ "and make sure you have run `dbt seed` first."
     ) }}
 {%- endif -%}
 
-{%- for seed_name in seed_nodes -%}
+{%- for seed_name in matched -%}
     select * from {{ ref(seed_name) }}
     {%- if not loop.last %} union all {% endif %}
 {%- endfor -%}

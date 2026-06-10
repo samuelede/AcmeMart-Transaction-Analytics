@@ -131,17 +131,20 @@ models:
         description: "Active / At Risk / Lapsing / Churned."
         tests:
           - accepted_values:
-              values: ['Active', 'At Risk', 'Lapsing', 'Churned']
+              arguments:
+                values: ['Active', 'At Risk', 'Lapsing', 'Churned']
       - name: frequency_band
         description: "High / Medium / Low transaction frequency."
         tests:
           - accepted_values:
-              values: ['High', 'Medium', 'Low']
+              arguments:
+                values: ['High', 'Medium', 'Low']
       - name: monetary_band
         description: "High Value / Mid Value / Low Value lifetime spend."
         tests:
           - accepted_values:
-              values: ['High Value', 'Mid Value', 'Low Value']
+              arguments:
+                values: ['High Value', 'Mid Value', 'Low Value']
       - name: avg_monthly_orders
         description: "Average number of orders placed per month."
       - name: avg_monthly_spend

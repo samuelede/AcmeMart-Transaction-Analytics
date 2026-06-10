@@ -225,3 +225,4 @@ logs/
 # end dbt Cloud content
 dbt_internal_packages/
 package-lock.json
+package-lock.yml

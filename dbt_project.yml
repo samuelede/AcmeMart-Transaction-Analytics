@@ -16,6 +16,15 @@ clean-targets:
   - "target"
   - "dbt_packages"
 
+# ---------------------------------------------------------------
+# List every seed filename here (without .csv extension).
+# When you add a new store CSV to the seeds/ folder, add its
+# name to this list and run `dbt seed` then `dbt run`.
+# ---------------------------------------------------------------
+vars:
+  seed_files:
+    - "store_S002"
+
 models:
   acmemart_dbt:
     staging:

@@ -35,11 +35,11 @@ renamed as (
         cast(customer_id         as varchar)    as customer_id,
 
         -- dates & times
-        try_cast(transaction_timestamp as timestamp)        as transaction_timestamp,
-        cast(transaction_timestamp as date)                 as transaction_date,
-        date_part('year',  try_cast(transaction_timestamp as timestamp))   as transaction_year,
-        date_part('month', try_cast(transaction_timestamp as timestamp))   as transaction_month,
-        date_part('hour',  try_cast(transaction_timestamp as timestamp))   as transaction_hour,
+        transaction_timestamp                                              as transaction_timestamp,
+        cast(transaction_timestamp as date)                                as transaction_date,
+        date_part('year',  transaction_timestamp)                          as transaction_year,
+        date_part('month', transaction_timestamp)                          as transaction_month,
+        date_part('hour',  transaction_timestamp)                          as transaction_hour,
 
         -- product attributes
         {{ clean_string('product_name') }}      as product_name,
